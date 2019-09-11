@@ -27,7 +27,7 @@
 <meta property="og:description" content="背景说明 使用Redis开发分布式应用时，难免会遇到需要使用分布式锁来确保某一小段逻辑的原子性操作，如：当存在某个key对应的值A大于值B时，则返回false；否则A + 1。试想一下，如果用到分布式锁，是不是有点感觉像是杀鸡用宰牛刀？ 由于Redis的操作都是原子性的，所以我们可以将如上所述的类似逻辑采用Lua脚本表述作为一个原子任务向redisClient提交，可以避免采用分布式锁。如脚本:">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://s2.ax1x.com/2019/09/11/nwnpOU.png">
-<meta property="og:updated_time" content="2019-09-11T11:59:13.545Z">
+<meta property="og:updated_time" content="2019-09-11T12:02:45.196Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis Lua scripts debugger使用">
 <meta name="twitter:description" content="背景说明 使用Redis开发分布式应用时，难免会遇到需要使用分布式锁来确保某一小段逻辑的原子性操作，如：当存在某个key对应的值A大于值B时，则返回false；否则A + 1。试想一下，如果用到分布式锁，是不是有点感觉像是杀鸡用宰牛刀？ 由于Redis的操作都是原子性的，所以我们可以将如上所述的类似逻辑采用Lua脚本表述作为一个原子任务向redisClient提交，可以避免采用分布式锁。如脚本:">
@@ -291,10 +291,11 @@
 </blockquote>
 <p>之后所要做的就是在<code>debugger</code>里输入<code>s</code>命令回车，表示执行下一步，直至程序结束或有异常退出为止。</p>
 <h2 id="redis-lua-debug命令"><a class="markdownIt-Anchor" href="#redis-lua-debug命令"></a> Redis Lua debug命令</h2>
+<p>括号中字母代表命令缩写。</p>
 <p><img src="https://s2.ax1x.com/2019/09/11/nwnpOU.png" alt="redis_lua_debug命令.png"></p>
 <h2 id="参考文章"><a class="markdownIt-Anchor" href="#参考文章"></a> 参考文章</h2>
 <ol>
-<li>[Redis Lua scripts debugger]（<a href="https://redis.io/topics/ldb%EF%BC%89" target="_blank" rel="noopener">https://redis.io/topics/ldb）</a></li>
+<li><a href="https://redis.io/topics/ldb" target="_blank" rel="noopener">Redis Lua scripts debugger</a></li>
 </ol>
 
       
