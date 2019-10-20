@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://latchshun.github.io/2019/09/25/%E5%8A%A8%E6%80%81%E4%BF%AE%E6%94%B9%E6%B3%A8%E8%A7%A3%E5%80%BC/</loc>
+    
+    <lastmod>2019-10-20T14:53:06.376Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://latchshun.github.io/2019/09/11/redis_lua_debugger/</loc>
     
     <lastmod>2019-09-11T12:02:45.196Z</lastmod>

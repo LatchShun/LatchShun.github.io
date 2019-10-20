@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform">
+  <meta http-equiv="Cache-Control" content="no-siteapp">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000">
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top">
+  
+  
+  <title>动态修改注解值 | 修巴利耶的轨迹</title>
+  <meta name="description" content="背景平时开发业务时，由于特殊需要，使得一份代码需要部署到4个应用服务中为不同对象进行服务。公司使用的配置中心是自研发的，暂不支持配置中心注解（如：@DynamicPropertyInject(name = &amp;quot;${application.effective.exchanges}&amp;quot;)）的值采用properties文件来动态配置。这使得在同套代码的不同应用场景下，表明同个含义的注入就">
+<meta name="keywords" content="Java,反射,注解,AOP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="动态修改注解值">
+<meta property="og:url" content="http://latchshun.github.io/2019/09/25/动态修改注解值/index.html">
+<meta property="og:site_name" content="Latch轨迹">
+<meta property="og:description" content="背景平时开发业务时，由于特殊需要，使得一份代码需要部署到4个应用服务中为不同对象进行服务。公司使用的配置中心是自研发的，暂不支持配置中心注解（如：@DynamicPropertyInject(name = &amp;quot;${application.effective.exchanges}&amp;quot;)）的值采用properties文件来动态配置。这使得在同套代码的不同应用场景下，表明同个含义的注入就">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-10-20T14:53:06.376Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="动态修改注解值">
+<meta name="twitter:description" content="背景平时开发业务时，由于特殊需要，使得一份代码需要部署到4个应用服务中为不同对象进行服务。公司使用的配置中心是自研发的，暂不支持配置中心注解（如：@DynamicPropertyInject(name = &amp;quot;${application.effective.exchanges}&amp;quot;)）的值采用properties文件来动态配置。这使得在同套代码的不同应用场景下，表明同个含义的注入就">
+  <!-- Canonical links -->
+  <link rel="canonical" href="http://latchshun.github.io/2019/09/25/动态修改注解值/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Latch轨迹" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+  
+  
+  
+</head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/LatchShun" target="_blank">
+          <img class="img-circle img-rotate" src="/images/profile.jpeg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">修巴利耶</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">高并发、微服务、大数据</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shanghai, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/LatchShun" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AOP/">AOP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/">Java</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/">Redis</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis-Lua-scripts-debugger/">Redis Lua scripts debugger</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/反射/">反射</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/微服务/">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/技术图谱/">技术图谱</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/注解/">注解</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/AOP/" style="font-size: 13px;">AOP</a> <a href="/tags/Java/" style="font-size: 13px;">Java</a> <a href="/tags/Redis/" style="font-size: 13px;">Redis</a> <a href="/tags/Redis-Lua-scripts-debugger/" style="font-size: 13px;">Redis Lua scripts debugger</a> <a href="/tags/反射/" style="font-size: 13px;">反射</a> <a href="/tags/微服务/" style="font-size: 13px;">微服务</a> <a href="/tags/技术图谱/" style="font-size: 13px;">技术图谱</a> <a href="/tags/注解/" style="font-size: 13px;">注解</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2019/09/25/动态修改注解值/" class="title">动态修改注解值</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-09-25T14:17:00.000Z" itemprop="datePublished">2019-09-25</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2019/09/11/redis_lua_debugger/" class="title">Redis Lua scripts debugger使用</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-09-11T11:50:00.000Z" itemprop="datePublished">2019-09-11</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2019/08/07/微服务基础架构图谱/" class="title">微服务基础架构图谱</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-08-07T07:25:49.000Z" itemprop="datePublished">2019-08-07</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-动态修改注解值" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      动态修改注解值
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2019/09/25/动态修改注解值/" class="article-date">
+	  <time datetime="2019-09-25T14:17:00.000Z" itemprop="datePublished">2019-09-25</time>
+	</a>
+</span>
+        
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link" href="/tags/AOP/">AOP</a>, <a class="article-tag-link" href="/tags/Java/">Java</a>, <a class="article-tag-link" href="/tags/反射/">反射</a>, <a class="article-tag-link" href="/tags/注解/">注解</a>
+  </span>
+
+
+        
+	<span class="article-read hidden-xs">
+	    <i class="icon icon-eye-fill" aria-hidden="true"></i>
+	    <span id="busuanzi_container_page_pv">
+			<span id="busuanzi_value_page_pv">0</span>
+		</span>
+	</span>
+
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2019/09/25/动态修改注解值/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>平时开发业务时，由于特殊需要，使得一份代码需要部署到4个应用服务中为不同对象进行服务。公司使用的配置中心是自研发的，暂不支持配置中心注解（如：<code>@DynamicPropertyInject(name = &quot;${application.effective.exchanges}&quot;)</code>）的值采用<code>properties</code>文件来动态配置。这使得在同套代码的不同应用场景下，表明同个含义的注入就需要声明多次，且有且仅只有一个声明对于当前应用是有效的。从简洁的角度来说不适合。</p>
+<p>示例注解：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="meta">@Target</span>(&#123;ElementType.FIELD&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> DynamicPropertyInject &#123;</span><br><span class="line">    <span class="function">String <span class="title">name</span><span class="params">()</span> <span class="keyword">default</span> ''</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>不能依据<code>properties</code>注入的代码情形：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DynamicConfiguration</span> </span>&#123;</span><br><span class="line">    <span class="meta">@DynamicPropertyInject</span>(name = <span class="string">"application1.effective.name"</span>)</span><br><span class="line">    <span class="keyword">private</span> String application1ExchangeName;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@DynamicPropertyInject</span>(name = <span class="string">"application2.effective.name"</span>)</span><br><span class="line">    <span class="keyword">private</span> String application2ExchageName;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@DynamicPropertyInject</span>(name = <span class="string">"application3.effective.name"</span>)</span><br><span class="line">    <span class="keyword">private</span> String application3ExchangeName;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其实在每个应用中，仅只有<code>application1ExchangeName</code>或<code>application2ExchangeName</code>或<code>application3ExchangeName</code>其中之一有效。</p>
+<p>能依据<code>properties</code>注入的代码情形：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DynamicConfiguration</span> </span>&#123;</span><br><span class="line">    <span class="meta">@DynamicPropertyInject</span>(name = <span class="string">"$&#123;application.effective.name&#125;"</span>)</span><br><span class="line">    <span class="keyword">private</span> String applicationExchangeName;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="解决："><a href="#解决：" class="headerlink" title="解决："></a>解决：</h2><p>针对如上所述的场景，其实要解决的是来获取<code>applicationExchangeName</code>的时候，需要根据当前的应用名称来取其对应的值。很自然的，第一反应是通过反射来获取注解属性的值并修改之。</p>
+<p>在这里提供下思路：</p>
+<ol>
+<li>为<code>DynamicConfiguration</code>的类定义切面；</li>
+<li>程序执行到注解<code>DynamicPropertyInject</code>时，判断是否需要去修改值。是则修改，否则跳过。</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DynamicConfigValueAspect</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String CHARACTER_DOLLAR = <span class="string">"$"</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String CHARACTER_NUMBERSIGN = <span class="string">"#"</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> ApplicationProperties applicationProperties;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Around</span>(<span class="string">"this(package of DynamicConfiguration)"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">around</span><span class="params">(ProceedingJoinPoint pjp)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        String methodName = pjp.getSignature().getName();</span><br><span class="line">        <span class="keyword">if</span> (methodName.startsWith(<span class="string">"get"</span>) &amp;&amp; methodName.length() &gt;= <span class="number">4</span>) &#123;</span><br><span class="line">            <span class="comment">//提取属性名</span></span><br><span class="line">            String fieldName = methodName.substring(<span class="number">3</span>, <span class="number">4</span>).toLowerCase() + methodName.substring(<span class="number">4</span>);</span><br><span class="line">            Field field = pjp.getTarget().getClass().getDeclaredField(fieldName);</span><br><span class="line">            DynamicPropertyInject configuration = field.getAnnotation(DynamicPropertyInject.class);</span><br><span class="line"></span><br><span class="line">            String configName = configuration.name();</span><br><span class="line">            <span class="comment">//属性的DynamicPropertyInject注解值是否需要修改</span></span><br><span class="line">            <span class="keyword">if</span> (StringUtils.isNotBlank(configName) &amp;&amp; StringUtils.startsWith(configName, CHARACTER_DOLLAR) || StringUtils.startsWith(configName, CHARACTER_NUMBERSIGN)) &#123;</span><br><span class="line">                InvocationHandler invocationHandler = Proxy.getInvocationHandler(configuration);</span><br><span class="line">                Field declaredField = invocationHandler.getClass().getDeclaredField(<span class="string">"memberValues"</span>);</span><br><span class="line">                declaredField.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">                Map memberValues = (Map) declaredField.get(invocationHandler);</span><br><span class="line">                <span class="comment">//获取修改的值并修改</span></span><br><span class="line">                memberValues.put(<span class="string">"name"</span>, getApplicationPropertiesByConfigElement(configName));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> pjp.proceed();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//获取修改的值</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> String <span class="title">getApplicationPropertiesByConfigElement</span><span class="params">(String configName)</span> <span class="keyword">throws</span> IllegalAccessException </span>&#123;</span><br><span class="line">        Field[] fields = ApplicationProperties.class.getDeclaredFields();</span><br><span class="line">        <span class="keyword">if</span> (ArrayUtils.isEmpty(fields)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (Field field : fields) &#123;</span><br><span class="line">            Value annotation = field.getAnnotation(Value.class);</span><br><span class="line">            <span class="keyword">if</span> (Objects.nonNull(annotation) &amp;&amp; StringUtils.equals(configName, annotation.value())) &#123;</span><br><span class="line">                field.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">                <span class="keyword">return</span> String.valueOf(field.get(applicationProperties));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//application property</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ApplicationProperties</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Value</span>(<span class="string">"$&#123;application.effective.name&#125;"</span>)</span><br><span class="line">    <span class="keyword">private</span> String applicationEffectiveName;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="http://latchshun.github.io/2019/09/25/动态修改注解值/" title="动态修改注解值" target="_blank" rel="external">http://latchshun.github.io/2019/09/25/动态修改注解值/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/LatchShun" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/profile.jpeg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/LatchShun" target="_blank"><span class="text-dark">修巴利耶</span><small class="ml-1x">高并发、微服务、大数据</small></a></h3>
+        <div></div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    
+    <li class="next">
+      <a href="/2019/09/11/redis_lua_debugger/" title="Redis Lua scripts debugger使用"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/LatchShun" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        &copy; 2019 修巴利耶
+        
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+<script src="/js/plugin.min.js"></script>
+<script src="/js/application.js"></script>
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+
+
+
+
+   
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

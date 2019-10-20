@@ -18,19 +18,19 @@
   
   
   <title>Redis Lua scripts debugger使用 | 修巴利耶的轨迹</title>
-  <meta name="description" content="背景说明 使用Redis开发分布式应用时，难免会遇到需要使用分布式锁来确保某一小段逻辑的原子性操作，如：当存在某个key对应的值A大于值B时，则返回false；否则A + 1。试想一下，如果用到分布式锁，是不是有点感觉像是杀鸡用宰牛刀？ 由于Redis的操作都是原子性的，所以我们可以将如上所述的类似逻辑采用Lua脚本表述作为一个原子任务向redisClient提交，可以避免采用分布式锁。如脚本:">
+  <meta name="description" content="背景说明使用Redis开发分布式应用时，难免会遇到需要使用分布式锁来确保某一小段逻辑的原子性操作，如：当存在某个key对应的值A大于值B时，则返回false；否则A + 1。试想一下，如果用到分布式锁，是不是有点感觉像是杀鸡用宰牛刀？ 由于Redis的操作都是原子性的，所以我们可以将如上所述的类似逻辑采用Lua脚本表述作为一个原子任务向redisClient提交，可以避免采用分布式锁。如脚本: 1">
 <meta name="keywords" content="Redis,Redis Lua scripts debugger">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Redis Lua scripts debugger使用">
 <meta property="og:url" content="http://latchshun.github.io/2019/09/11/redis_lua_debugger/index.html">
 <meta property="og:site_name" content="Latch轨迹">
-<meta property="og:description" content="背景说明 使用Redis开发分布式应用时，难免会遇到需要使用分布式锁来确保某一小段逻辑的原子性操作，如：当存在某个key对应的值A大于值B时，则返回false；否则A + 1。试想一下，如果用到分布式锁，是不是有点感觉像是杀鸡用宰牛刀？ 由于Redis的操作都是原子性的，所以我们可以将如上所述的类似逻辑采用Lua脚本表述作为一个原子任务向redisClient提交，可以避免采用分布式锁。如脚本:">
+<meta property="og:description" content="背景说明使用Redis开发分布式应用时，难免会遇到需要使用分布式锁来确保某一小段逻辑的原子性操作，如：当存在某个key对应的值A大于值B时，则返回false；否则A + 1。试想一下，如果用到分布式锁，是不是有点感觉像是杀鸡用宰牛刀？ 由于Redis的操作都是原子性的，所以我们可以将如上所述的类似逻辑采用Lua脚本表述作为一个原子任务向redisClient提交，可以避免采用分布式锁。如脚本: 1">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://s2.ax1x.com/2019/09/11/nwnpOU.png">
 <meta property="og:updated_time" content="2019-09-11T12:02:45.196Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis Lua scripts debugger使用">
-<meta name="twitter:description" content="背景说明 使用Redis开发分布式应用时，难免会遇到需要使用分布式锁来确保某一小段逻辑的原子性操作，如：当存在某个key对应的值A大于值B时，则返回false；否则A + 1。试想一下，如果用到分布式锁，是不是有点感觉像是杀鸡用宰牛刀？ 由于Redis的操作都是原子性的，所以我们可以将如上所述的类似逻辑采用Lua脚本表述作为一个原子任务向redisClient提交，可以避免采用分布式锁。如脚本:">
+<meta name="twitter:description" content="背景说明使用Redis开发分布式应用时，难免会遇到需要使用分布式锁来确保某一小段逻辑的原子性操作，如：当存在某个key对应的值A大于值B时，则返回false；否则A + 1。试想一下，如果用到分布式锁，是不是有点感觉像是杀鸡用宰牛刀？ 由于Redis的操作都是原子性的，所以我们可以将如上所述的类似逻辑采用Lua脚本表述作为一个原子任务向redisClient提交，可以避免采用分布式锁。如脚本: 1">
 <meta name="twitter:image" content="https://s2.ax1x.com/2019/09/11/nwnpOU.png">
   <!-- Canonical links -->
   <link rel="canonical" href="http://latchshun.github.io/2019/09/11/redis_lua_debugger/index.html">
@@ -156,7 +156,7 @@
   <div class="widget">
     <h3 class="widget-title">标签</h3>
     <div class="widget-body">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/">Redis</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis-Lua-scripts-debugger/">Redis Lua scripts debugger</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/微服务/">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/技术图谱/">技术图谱</a><span class="tag-list-count">1</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AOP/">AOP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/">Java</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/">Redis</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis-Lua-scripts-debugger/">Redis Lua scripts debugger</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/反射/">反射</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/微服务/">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/技术图谱/">技术图谱</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/注解/">注解</a><span class="tag-list-count">1</span></li></ul>
     </div>
   </div>
 
@@ -166,7 +166,7 @@
   <div class="widget">
     <h3 class="widget-title">标签云</h3>
     <div class="widget-body tagcloud">
-      <a href="/tags/Redis/" style="font-size: 13px;">Redis</a> <a href="/tags/Redis-Lua-scripts-debugger/" style="font-size: 13px;">Redis Lua scripts debugger</a> <a href="/tags/微服务/" style="font-size: 13px;">微服务</a> <a href="/tags/技术图谱/" style="font-size: 13px;">技术图谱</a>
+      <a href="/tags/AOP/" style="font-size: 13px;">AOP</a> <a href="/tags/Java/" style="font-size: 13px;">Java</a> <a href="/tags/Redis/" style="font-size: 13px;">Redis</a> <a href="/tags/Redis-Lua-scripts-debugger/" style="font-size: 13px;">Redis Lua scripts debugger</a> <a href="/tags/反射/" style="font-size: 13px;">反射</a> <a href="/tags/微服务/" style="font-size: 13px;">微服务</a> <a href="/tags/技术图谱/" style="font-size: 13px;">技术图谱</a> <a href="/tags/注解/" style="font-size: 13px;">注解</a>
     </div>
   </div>
 
@@ -177,6 +177,21 @@
     <div class="widget-body">
       <ul class="recent-post-list list-unstyled no-thumbnail">
         
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2019/09/25/动态修改注解值/" class="title">动态修改注解值</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-09-25T14:17:00.000Z" itemprop="datePublished">2019-09-25</time>
+              </p>
+            </div>
+          </li>
+          
           <li>
             
             <div class="item-inner">
@@ -262,13 +277,12 @@
     </div>
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        <h2 id="背景说明"><a class="markdownIt-Anchor" href="#背景说明"></a> 背景说明</h2>
-<p>使用<code>Redis</code>开发分布式应用时，难免会遇到需要使用分布式锁来确保某一小段逻辑的原子性操作，如：当存在某个<code>key</code>对应的值<code>A</code>大于值<code>B</code>时，则返回<code>false</code>；否则<code>A + 1</code>。试想一下，如果用到分布式锁，是不是有点感觉像是杀鸡用宰牛刀？</p>
+        <h2 id="背景说明"><a href="#背景说明" class="headerlink" title="背景说明"></a>背景说明</h2><p>使用<code>Redis</code>开发分布式应用时，难免会遇到需要使用分布式锁来确保某一小段逻辑的原子性操作，如：当存在某个<code>key</code>对应的值<code>A</code>大于值<code>B</code>时，则返回<code>false</code>；否则<code>A + 1</code>。试想一下，如果用到分布式锁，是不是有点感觉像是杀鸡用宰牛刀？</p>
 <p>由于<code>Redis</code>的操作都是原子性的，所以我们可以将如上所述的类似逻辑采用<code>Lua</code>脚本表述作为一个原子任务向<code>redisClient</code>提交，可以避免采用分布式锁。如脚本:</p>
 <figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">local</span> key = KEYS[<span class="number">1</span>]</span><br><span class="line"><span class="keyword">local</span> expire_time = <span class="built_in">tonumber</span>(ARGV[<span class="number">1</span>])</span><br><span class="line"><span class="keyword">local</span> max_count = <span class="built_in">tonumber</span>(ARGV[<span class="number">2</span>])</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 验证key是否存在，不存在设置过期时间</span></span><br><span class="line"><span class="keyword">local</span> is_key_exists = redis.call(<span class="string">"EXISTS"</span>, key)</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 存在</span></span><br><span class="line"><span class="keyword">if</span> is_key_exists == <span class="number">1</span> <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">local</span> key_count = redis.call(<span class="string">"get"</span>, key)</span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">tonumber</span>(key_count) &gt;= max_count <span class="keyword">then</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        redis.call(<span class="string">"incr"</span>, key)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    redis.call(<span class="string">"incr"</span>, key);</span><br><span class="line">    redis.call(<span class="string">"expire"</span>, key, expire_time)</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
 <p>但此时发现，在<code>Redis</code>中调试是个困难的事情。但幸好，从<code>Redis 3,2</code>版本开始，提供了<code>Lua script debugger</code>来解决此问题。</p>
-<h2 id="redis-lua调试器特点"><a class="markdownIt-Anchor" href="#redis-lua调试器特点"></a> Redis Lua调试器特点</h2>
-<p><code>Redis Lua</code>调试器代号为<code>LDB</code>，特点如下：</p>
+<h2 id="Redis-Lua调试器特点"><a href="#Redis-Lua调试器特点" class="headerlink" title="Redis Lua调试器特点"></a>Redis Lua调试器特点</h2><p><code>Redis Lua</code>调试器代号为<code>LDB</code>，特点如下：</p>
 <ul>
 <li>支持单步调试</li>
 <li>支持静态和动态断点</li>
@@ -281,20 +295,19 @@
 <li>默认情况下，每个调试会话都是<code>fork</code>子进程进行的。所以调试过程中不会影响<code>Redis</code>其他操作；调试结束后，本次会话中的内容都会被回滚</li>
 <li>你也可以将调试会话设置成同步模式，但是此时必须注意调试时会影响<code>Redis</code>所有其他的操作，且调试会话产生的结果都会被保存下来</li>
 </ul>
-<h2 id="redis-lua调试器快速入门"><a class="markdownIt-Anchor" href="#redis-lua调试器快速入门"></a> Redis Lua调试器快速入门</h2>
-<p>想看视频的直接点<a href="https://www.bilibili.com/video/av9437433/" target="_blank" rel="noopener">这里</a>，这是<code>Redis</code>之父录制的视频。</p>
+<h2 id="Redis-Lua调试器快速入门"><a href="#Redis-Lua调试器快速入门" class="headerlink" title="Redis Lua调试器快速入门"></a>Redis Lua调试器快速入门</h2><p>想看视频的直接点<a href="https://www.bilibili.com/video/av9437433/" target="_blank" rel="noopener">这里</a>，这是<code>Redis</code>之父录制的视频。</p>
 <p>想看文字的继续。以我们在刚开始提供的<code>Lua</code>脚本，假设其目录为<code>~/Desktop/tmp/test.lua</code>。此时执行命令（需要先<code>cd</code>到<code>redis-cli</code>命令目录下）：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">-- async mode</span><br><span class="line">redis-cli --ldb --eval redis_lua_file redis_key , param1 param2</span><br><span class="line"></span><br><span class="line">-- sync mode</span><br><span class="line">redis-cli --ldb-sync-mode --eval redis_lua_file redis_key , param1 param2</span><br></pre></td></tr></table></figure>
+
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"> ~  redis-cli --ldb --eval ~/Desktop/tmp/test.lua key , 1 3</span><br><span class="line">Lua debugging session started, please use:</span><br><span class="line">quit    -- End the session.</span><br><span class="line">restart -- Restart the script in debug mode again.</span><br><span class="line">help    -- Show Lua script debugging commands.</span><br><span class="line"></span><br><span class="line">* Stopped at 6, stop reason = step over</span><br><span class="line"><span class="meta">-&gt;</span><span class="bash"> 6   <span class="built_in">local</span> key = KEYS[1]</span></span><br><span class="line">lua debugger&gt;</span><br></pre></td></tr></table></figure>
+
 <blockquote>
 <p>注意：<code>redis-cli</code>里的逗号前后都是有空格的。我这里示例是本地有开启<code>redis-server</code>，如果没有开启也可以连接到远程<code>redis server</code>进行调试。另外，<code>key</code>表示的是要传入脚本中处理的<code>redis key</code>，其后的1和3则是参数，中间用空格隔开。</p>
 </blockquote>
 <p>之后所要做的就是在<code>debugger</code>里输入<code>s</code>命令回车，表示执行下一步，直至程序结束或有异常退出为止。</p>
-<h2 id="redis-lua-debug命令"><a class="markdownIt-Anchor" href="#redis-lua-debug命令"></a> Redis Lua debug命令</h2>
-<p>括号中字母代表命令缩写。</p>
+<h2 id="Redis-Lua-debug命令"><a href="#Redis-Lua-debug命令" class="headerlink" title="Redis Lua debug命令"></a>Redis Lua debug命令</h2><p>括号中字母代表命令缩写。</p>
 <p><img src="https://s2.ax1x.com/2019/09/11/nwnpOU.png" alt="redis_lua_debug命令.png"></p>
-<h2 id="参考文章"><a class="markdownIt-Anchor" href="#参考文章"></a> 参考文章</h2>
-<ol>
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><ol>
 <li><a href="https://redis.io/topics/ldb" target="_blank" rel="noopener">Redis Lua scripts debugger</a></li>
 </ol>
 
@@ -351,6 +364,10 @@
   <div class="bar-inner">
   
   <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2019/09/25/动态修改注解值/" title="动态修改注解值"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
     
     
     <li class="next">
