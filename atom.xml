@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://latchshun.github.io/"/>
-  <updated>2019-10-20T14:53:06.376Z</updated>
+  <updated>2020-06-28T16:57:35.810Z</updated>
   <id>http://latchshun.github.io/</id>
   
   <author>
@@ -15,6 +15,58 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>大表加索引方案</title>
+    <link href="http://latchshun.github.io/2020/06/28/%E5%A4%A7%E8%A1%A8%E5%8A%A0%E7%B4%A2%E5%BC%95%E6%96%B9%E6%A1%88/"/>
+    <id>http://latchshun.github.io/2020/06/28/大表加索引方案/</id>
+    <published>2020-06-28T15:40:00.000Z</published>
+    <updated>2020-06-28T16:57:35.810Z</updated>
+    
+    <content type="html"><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>每个公司针对数据库的设计都有套方案。最近在巡检表的设计，发现之前有张表漏掉了针对更新时间字段<em>updated_at</em>的索引，现在需要加上该索引。</p><p>我们都知道，<strong>为表增加索引是会对表进行加锁处理的</strong>。稍有不慎，可能会导致表被锁后，业务无法进行读写操作而产生事故影响，通常都是报错<code>Waiting for meta data lock</code>。在对表进行修改时，特别是生产上，我们<strong>首先要观察对应的表此时是否在高并发读写（选择操作时机）、表的量级信息</strong>。</p><h2 id="方案"><a href="#方案" class="headerlink" title="方案"></a>方案</h2><p>整体思路是：</p><ol><li>先创建一张表，结构和原表相同；</li><li>在新表上添加索引；</li><li><em>rename</em>新表为原表的表名，原表换新的名称；</li><li>为原表新增索引；</li><li>待索引创建成功后，<em>rename</em>原表为原来的名称，并将新表里的数据导入到原表中</li></ol><p><em>SQL</em>可参考：</p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 假设需要添加索引的表为`fea_moni_res`</span></span><br><span class="line"><span class="comment">-- 1. 新建与表`fea_moni_res`同结构的表</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> fea_moni_res_tmp <span class="keyword">LIKE</span> fea_moni_res;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 2. 新表上添加索引</span></span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> fea_moni_res_tmp <span class="keyword">ADD</span> <span class="keyword">INDEX</span> idx_index_name (col_name);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 3. *rename*新表为原表的表名，原表换新的名称</span></span><br><span class="line"><span class="keyword">RENAME</span> <span class="keyword">TABLE</span> fea_moni_res <span class="keyword">TO</span> fea_moni_res_1, fea_moni_res_tmp <span class="keyword">TO</span> fea_moni_res;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 4. 为原表新增索引，此步耗时较长</span></span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> fea_moni_res_1 <span class="keyword">ADD</span> <span class="keyword">INDEX</span> idx_index_name (col_name);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 5. 待索引创建成功后，rename原表为原来的名称，并将新表里的数据导入到原表中</span></span><br><span class="line"><span class="keyword">RENAME</span> <span class="keyword">TABLE</span> fea_moni_res <span class="keyword">TO</span> fea_moni_res_tmp, fea_moni_res_1 <span class="keyword">TO</span> fea_moni_res;</span><br><span class="line"><span class="comment">-- 需要根据业务来确定如果导入数据</span></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> fea_moni_res(col_name1, col_name2) <span class="keyword">SELECT</span> col_name1, col_name2 <span class="keyword">FROM</span> fea_moni_res_tmp;</span><br></pre></td></tr></table></figure><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文提供了一种为大表添加索引的方法。当然，此方案不是完美的。譬如，步骤3中的<em>rename</em>操作后，是极有可能会对业务产生影响的，因为业务需要根据历史数据来判断逻辑。此时可能不得不在步骤2之后，先行将原表中的数据导入到新表中，待完全导入后再直接切表操作。此需要根据业务的场景来判断，具体问题具体分析。</p><p>此处只是提供了一种方案，涉及到为大表添加字段、删除字段的表锁操作均可参考。</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h1 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h1&gt;&lt;p&gt;每个公司针对数据库的设计都有套方案。最近在巡检表的设计，发现之前有张表漏掉了针对更新时间字段&lt;em&gt;updated_at&lt;/em&gt;的索引，现
+      
+    
+    </summary>
+    
+    
+      <category term="MySQL" scheme="http://latchshun.github.io/tags/MySQL/"/>
+    
+      <category term="索引" scheme="http://latchshun.github.io/tags/%E7%B4%A2%E5%BC%95/"/>
+    
+      <category term="大表" scheme="http://latchshun.github.io/tags/%E5%A4%A7%E8%A1%A8/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>关于Hive操作HBase报错can not get replica 0 location</title>
+    <link href="http://latchshun.github.io/2020/06/22/%E5%85%B3%E4%BA%8EHBase%20cannot%20get%20replica%200%20location%E7%9A%84%E6%8A%A5%E9%94%99/"/>
+    <id>http://latchshun.github.io/2020/06/22/关于HBase cannot get replica 0 location的报错/</id>
+    <published>2020-06-21T16:27:00.000Z</published>
+    <updated>2020-06-21T17:14:02.363Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>最近一直在忙于公司的标签系统项目，整个系统的硬件基础都基于阿里云。标签系统分为原生标签、即时标签、实时标签和离线标签，每日晚上会定时处理离线标签。最近接到业务的报错，说他的标签已经两天没数据产出且报错了，扔给了我个log的地址。一看，居然是报错<em>Error while processing statement: FAILED: Execution Error, return code 1 from org.apache.hadoop.hive.ql.exec.mr.MapRedTask. Can’t get the location for replica 0</em>。粗略看了下日志，没发现有什么问题，也想不明白哪里引起这个问题，遂上网查询一番。</p><p>–Error while processing statement: hive configuration hive.hadoop.supports.splittable.combineinputformat does not exists–</p><h2 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h2><p>总结下网上搜索出的结果<a href="https://www.jianshu.com/p/5a43493bcb4e" target="_blank" rel="noopener">^1</a>，大致分为三类：</p><ol><li><p><em>hbase</em>中没有相关的表<br>经排查，报错的标签对应的表是存在的，且有些标签是成功的。所以这种解决方法不适合。</p></li><li><p><em>hbase</em>表错误<br>执行<em>hbase hbck</em>命令<a href="https://blog.csdn.net/liliwei0213/article/details/53639275" target="_blank" rel="noopener">^2</a>检查是否有表错误。由于系统中有标签的成功，所以这种解决方法也不适合。</p></li><li><p><em>zookeeper</em>连接错误</p></li></ol><p><em>hive</em>或者<em>API</em>或其他的方式连接<em>HBase</em>时，首先都要去连接<em>HBase</em>管理的<em>zookeeper</em>，从<em>zookeeper</em>中获取<em>HBase</em>的元数据信息，根据获取的元数据信息到指定的<em>RegionServer</em>里取值。如果<em>zookeeper</em>连接不上，那会报错<em>can not get replica 0 location</em>。经查询<em>hive</em>的日志，发现的确是<em>zookeepr</em>的原因，修改后解决。</p><h2 id="追根溯源"><a href="#追根溯源" class="headerlink" title="追根溯源"></a>追根溯源</h2><p>那<em>zookeeper</em>连接不上，为什么会报错<em>can not get replica 0 location</em>？这个报错又是什么意思呢？上面也解释了客户端读取<em>HBase</em>的流程：即首先都要去连接<em>HBase</em>管理的<em>zookeeper</em>，从<em>zookeeper</em>中获取<em>HBase</em>的元数据信息，根据获取的元数据信息到指定的<em>RegionServer</em>里取值。</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h2 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h2&gt;&lt;p&gt;最近一直在忙于公司的标签系统项目，整个系统的硬件基础都基于阿里云。标签系统分为原生标签、即时标签、实时标签和离线标签，每日晚上会定时处理离线
+      
+    
+    </summary>
+    
+    
+      <category term="Hive" scheme="http://latchshun.github.io/tags/Hive/"/>
+    
+      <category term="HBase" scheme="http://latchshun.github.io/tags/HBase/"/>
+    
+  </entry>
   
   <entry>
     <title>动态修改注解值</title>

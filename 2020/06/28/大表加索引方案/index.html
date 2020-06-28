@@ -17,23 +17,21 @@
   <meta http-equiv="window-target" content="_top">
   
   
-  <title>Redis Lua scripts debugger使用 | 修巴利耶的轨迹</title>
-  <meta name="description" content="背景说明使用Redis开发分布式应用时，难免会遇到需要使用分布式锁来确保某一小段逻辑的原子性操作，如：当存在某个key对应的值A大于值B时，则返回false；否则A + 1。试想一下，如果用到分布式锁，是不是有点感觉像是杀鸡用宰牛刀？ 由于Redis的操作都是原子性的，所以我们可以将如上所述的类似逻辑采用Lua脚本表述作为一个原子任务向redisClient提交，可以避免采用分布式锁。如脚本: 1">
-<meta name="keywords" content="Redis,Redis Lua scripts debugger">
+  <title>大表加索引方案 | 修巴利耶的轨迹</title>
+  <meta name="description" content="背景每个公司针对数据库的设计都有套方案。最近在巡检表的设计，发现之前有张表漏掉了针对更新时间字段updated_at的索引，现在需要加上该索引。 我们都知道，为表增加索引是会对表进行加锁处理的。稍有不慎，可能会导致表被锁后，业务无法进行读写操作而产生事故影响，通常都是报错Waiting for meta data lock。在对表进行修改时，特别是生产上，我们首先要观察对应的表此时是否在高并发读写">
+<meta name="keywords" content="MySQL,索引,大表">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Redis Lua scripts debugger使用">
-<meta property="og:url" content="http://latchshun.github.io/2019/09/11/redis_lua_debugger/index.html">
+<meta property="og:title" content="大表加索引方案">
+<meta property="og:url" content="http://latchshun.github.io/2020/06/28/大表加索引方案/index.html">
 <meta property="og:site_name" content="Latch轨迹">
-<meta property="og:description" content="背景说明使用Redis开发分布式应用时，难免会遇到需要使用分布式锁来确保某一小段逻辑的原子性操作，如：当存在某个key对应的值A大于值B时，则返回false；否则A + 1。试想一下，如果用到分布式锁，是不是有点感觉像是杀鸡用宰牛刀？ 由于Redis的操作都是原子性的，所以我们可以将如上所述的类似逻辑采用Lua脚本表述作为一个原子任务向redisClient提交，可以避免采用分布式锁。如脚本: 1">
+<meta property="og:description" content="背景每个公司针对数据库的设计都有套方案。最近在巡检表的设计，发现之前有张表漏掉了针对更新时间字段updated_at的索引，现在需要加上该索引。 我们都知道，为表增加索引是会对表进行加锁处理的。稍有不慎，可能会导致表被锁后，业务无法进行读写操作而产生事故影响，通常都是报错Waiting for meta data lock。在对表进行修改时，特别是生产上，我们首先要观察对应的表此时是否在高并发读写">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://s2.ax1x.com/2019/09/11/nwnpOU.png">
-<meta property="og:updated_time" content="2019-09-11T12:02:45.196Z">
+<meta property="og:updated_time" content="2020-06-28T16:57:35.810Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Redis Lua scripts debugger使用">
-<meta name="twitter:description" content="背景说明使用Redis开发分布式应用时，难免会遇到需要使用分布式锁来确保某一小段逻辑的原子性操作，如：当存在某个key对应的值A大于值B时，则返回false；否则A + 1。试想一下，如果用到分布式锁，是不是有点感觉像是杀鸡用宰牛刀？ 由于Redis的操作都是原子性的，所以我们可以将如上所述的类似逻辑采用Lua脚本表述作为一个原子任务向redisClient提交，可以避免采用分布式锁。如脚本: 1">
-<meta name="twitter:image" content="https://s2.ax1x.com/2019/09/11/nwnpOU.png">
+<meta name="twitter:title" content="大表加索引方案">
+<meta name="twitter:description" content="背景每个公司针对数据库的设计都有套方案。最近在巡检表的设计，发现之前有张表漏掉了针对更新时间字段updated_at的索引，现在需要加上该索引。 我们都知道，为表增加索引是会对表进行加锁处理的。稍有不慎，可能会导致表被锁后，业务无法进行读写操作而产生事故影响，通常都是报错Waiting for meta data lock。在对表进行修改时，特别是生产上，我们首先要观察对应的表此时是否在高并发读写">
   <!-- Canonical links -->
-  <link rel="canonical" href="http://latchshun.github.io/2019/09/11/redis_lua_debugger/index.html">
+  <link rel="canonical" href="http://latchshun.github.io/2020/06/28/大表加索引方案/index.html">
   
     <link rel="alternate" href="/atom.xml" title="Latch轨迹" type="application/atom+xml">
   
@@ -265,14 +263,14 @@
   
 <main class="main" role="main">
   <div class="content">
-  <article id="post-redis_lua_debugger" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+  <article id="post-大表加索引方案" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
     
     <div class="article-header">
       
         
   
     <h1 class="article-title" itemprop="name">
-      Redis Lua scripts debugger使用
+      大表加索引方案
     </h1>
   
 
@@ -280,15 +278,15 @@
       <div class="article-meta">
         <span class="article-date">
     <i class="icon icon-calendar-check"></i>
-	<a href="/2019/09/11/redis_lua_debugger/" class="article-date">
-	  <time datetime="2019-09-11T11:50:00.000Z" itemprop="datePublished">2019-09-11</time>
+	<a href="/2020/06/28/大表加索引方案/" class="article-date">
+	  <time datetime="2020-06-28T15:40:00.000Z" itemprop="datePublished">2020-06-28</time>
 	</a>
 </span>
         
         
   <span class="article-tag">
     <i class="icon icon-tags"></i>
-	<a class="article-tag-link" href="/tags/Redis/">Redis</a>, <a class="article-tag-link" href="/tags/Redis-Lua-scripts-debugger/">Redis Lua scripts debugger</a>
+	<a class="article-tag-link" href="/tags/MySQL/">MySQL</a>, <a class="article-tag-link" href="/tags/大表/">大表</a>, <a class="article-tag-link" href="/tags/索引/">索引</a>
   </span>
 
 
@@ -301,45 +299,27 @@
 	</span>
 
 
-        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2019/09/11/redis_lua_debugger/#comments" class="article-comment-link">评论</a></span>
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2020/06/28/大表加索引方案/#comments" class="article-comment-link">评论</a></span>
         
       </div>
     </div>
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        <h2 id="背景说明"><a href="#背景说明" class="headerlink" title="背景说明"></a>背景说明</h2><p>使用<code>Redis</code>开发分布式应用时，难免会遇到需要使用分布式锁来确保某一小段逻辑的原子性操作，如：当存在某个<code>key</code>对应的值<code>A</code>大于值<code>B</code>时，则返回<code>false</code>；否则<code>A + 1</code>。试想一下，如果用到分布式锁，是不是有点感觉像是杀鸡用宰牛刀？</p>
-<p>由于<code>Redis</code>的操作都是原子性的，所以我们可以将如上所述的类似逻辑采用<code>Lua</code>脚本表述作为一个原子任务向<code>redisClient</code>提交，可以避免采用分布式锁。如脚本:</p>
-<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">local</span> key = KEYS[<span class="number">1</span>]</span><br><span class="line"><span class="keyword">local</span> expire_time = <span class="built_in">tonumber</span>(ARGV[<span class="number">1</span>])</span><br><span class="line"><span class="keyword">local</span> max_count = <span class="built_in">tonumber</span>(ARGV[<span class="number">2</span>])</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 验证key是否存在，不存在设置过期时间</span></span><br><span class="line"><span class="keyword">local</span> is_key_exists = redis.call(<span class="string">"EXISTS"</span>, key)</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 存在</span></span><br><span class="line"><span class="keyword">if</span> is_key_exists == <span class="number">1</span> <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">local</span> key_count = redis.call(<span class="string">"get"</span>, key)</span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">tonumber</span>(key_count) &gt;= max_count <span class="keyword">then</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        redis.call(<span class="string">"incr"</span>, key)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    redis.call(<span class="string">"incr"</span>, key);</span><br><span class="line">    redis.call(<span class="string">"expire"</span>, key, expire_time)</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
-
-<p>但此时发现，在<code>Redis</code>中调试是个困难的事情。但幸好，从<code>Redis 3,2</code>版本开始，提供了<code>Lua script debugger</code>来解决此问题。</p>
-<h2 id="Redis-Lua调试器特点"><a href="#Redis-Lua调试器特点" class="headerlink" title="Redis Lua调试器特点"></a>Redis Lua调试器特点</h2><p><code>Redis Lua</code>调试器代号为<code>LDB</code>，特点如下：</p>
-<ul>
-<li>支持单步调试</li>
-<li>支持静态和动态断点</li>
-<li>支持将被调试的脚本载入至调试终端</li>
-<li>支持对<code>Lua</code>变量进行观察</li>
-<li>支持追踪脚本执行的<code>Redis</code>命令</li>
-<li>支持以美观方式打印<code>Redis</code>值及<code>Lua</code>值</li>
-<li>能够在无线循环及长时间执行步骤中模拟出断点</li>
-<li>采用<code>CS</code>模型，<code>S</code>即<code>Redis</code>服务器，<code>C</code>即<code>redis-cli</code>客户端</li>
-<li>默认情况下，每个调试会话都是<code>fork</code>子进程进行的。所以调试过程中不会影响<code>Redis</code>其他操作；调试结束后，本次会话中的内容都会被回滚</li>
-<li>你也可以将调试会话设置成同步模式，但是此时必须注意调试时会影响<code>Redis</code>所有其他的操作，且调试会话产生的结果都会被保存下来</li>
-</ul>
-<h2 id="Redis-Lua调试器快速入门"><a href="#Redis-Lua调试器快速入门" class="headerlink" title="Redis Lua调试器快速入门"></a>Redis Lua调试器快速入门</h2><p>想看视频的直接点<a href="https://www.bilibili.com/video/av9437433/" target="_blank" rel="noopener">这里</a>，这是<code>Redis</code>之父录制的视频。</p>
-<p>想看文字的继续。以我们在刚开始提供的<code>Lua</code>脚本，假设其目录为<code>~/Desktop/tmp/test.lua</code>。此时执行命令（需要先<code>cd</code>到<code>redis-cli</code>命令目录下）：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">-- async mode</span><br><span class="line">redis-cli --ldb --eval redis_lua_file redis_key , param1 param2</span><br><span class="line"></span><br><span class="line">-- sync mode</span><br><span class="line">redis-cli --ldb-sync-mode --eval redis_lua_file redis_key , param1 param2</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"> ~  redis-cli --ldb --eval ~/Desktop/tmp/test.lua key , 1 3</span><br><span class="line">Lua debugging session started, please use:</span><br><span class="line">quit    -- End the session.</span><br><span class="line">restart -- Restart the script in debug mode again.</span><br><span class="line">help    -- Show Lua script debugging commands.</span><br><span class="line"></span><br><span class="line">* Stopped at 6, stop reason = step over</span><br><span class="line"><span class="meta">-&gt;</span><span class="bash"> 6   <span class="built_in">local</span> key = KEYS[1]</span></span><br><span class="line">lua debugger&gt;</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>注意：<code>redis-cli</code>里的逗号前后都是有空格的。我这里示例是本地有开启<code>redis-server</code>，如果没有开启也可以连接到远程<code>redis server</code>进行调试。另外，<code>key</code>表示的是要传入脚本中处理的<code>redis key</code>，其后的1和3则是参数，中间用空格隔开。</p>
-</blockquote>
-<p>之后所要做的就是在<code>debugger</code>里输入<code>s</code>命令回车，表示执行下一步，直至程序结束或有异常退出为止。</p>
-<h2 id="Redis-Lua-debug命令"><a href="#Redis-Lua-debug命令" class="headerlink" title="Redis Lua debug命令"></a>Redis Lua debug命令</h2><p>括号中字母代表命令缩写。</p>
-<p><img src="https://s2.ax1x.com/2019/09/11/nwnpOU.png" alt="redis_lua_debug命令.png"></p>
-<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><ol>
-<li><a href="https://redis.io/topics/ldb" target="_blank" rel="noopener">Redis Lua scripts debugger</a></li>
+        <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>每个公司针对数据库的设计都有套方案。最近在巡检表的设计，发现之前有张表漏掉了针对更新时间字段<em>updated_at</em>的索引，现在需要加上该索引。</p>
+<p>我们都知道，<strong>为表增加索引是会对表进行加锁处理的</strong>。稍有不慎，可能会导致表被锁后，业务无法进行读写操作而产生事故影响，通常都是报错<code>Waiting for meta data lock</code>。在对表进行修改时，特别是生产上，我们<strong>首先要观察对应的表此时是否在高并发读写（选择操作时机）、表的量级信息</strong>。</p>
+<h2 id="方案"><a href="#方案" class="headerlink" title="方案"></a>方案</h2><p>整体思路是：</p>
+<ol>
+<li>先创建一张表，结构和原表相同；</li>
+<li>在新表上添加索引；</li>
+<li><em>rename</em>新表为原表的表名，原表换新的名称；</li>
+<li>为原表新增索引；</li>
+<li>待索引创建成功后，<em>rename</em>原表为原来的名称，并将新表里的数据导入到原表中</li>
 </ol>
+<p><em>SQL</em>可参考：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 假设需要添加索引的表为`fea_moni_res`</span></span><br><span class="line"><span class="comment">-- 1. 新建与表`fea_moni_res`同结构的表</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> fea_moni_res_tmp <span class="keyword">LIKE</span> fea_moni_res;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 2. 新表上添加索引</span></span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> fea_moni_res_tmp <span class="keyword">ADD</span> <span class="keyword">INDEX</span> idx_index_name (col_name);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 3. *rename*新表为原表的表名，原表换新的名称</span></span><br><span class="line"><span class="keyword">RENAME</span> <span class="keyword">TABLE</span> fea_moni_res <span class="keyword">TO</span> fea_moni_res_1, fea_moni_res_tmp <span class="keyword">TO</span> fea_moni_res;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 4. 为原表新增索引，此步耗时较长</span></span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> fea_moni_res_1 <span class="keyword">ADD</span> <span class="keyword">INDEX</span> idx_index_name (col_name);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 5. 待索引创建成功后，rename原表为原来的名称，并将新表里的数据导入到原表中</span></span><br><span class="line"><span class="keyword">RENAME</span> <span class="keyword">TABLE</span> fea_moni_res <span class="keyword">TO</span> fea_moni_res_tmp, fea_moni_res_1 <span class="keyword">TO</span> fea_moni_res;</span><br><span class="line"><span class="comment">-- 需要根据业务来确定如果导入数据</span></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> fea_moni_res(col_name1, col_name2) <span class="keyword">SELECT</span> col_name1, col_name2 <span class="keyword">FROM</span> fea_moni_res_tmp;</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文提供了一种为大表添加索引的方法。当然，此方案不是完美的。譬如，步骤3中的<em>rename</em>操作后，是极有可能会对业务产生影响的，因为业务需要根据历史数据来判断逻辑。此时可能不得不在步骤2之后，先行将原表中的数据导入到新表中，待完全导入后再直接切表操作。此需要根据业务的场景来判断，具体问题具体分析。</p>
+<p>此处只是提供了一种方案，涉及到为大表添加字段、删除字段的表锁操作均可参考。</p>
 
       
     </div>
@@ -349,7 +329,7 @@
     
     <li class="post-copyright-link hidden-xs">
       <strong>本文链接：</strong>
-      <a href="http://latchshun.github.io/2019/09/11/redis_lua_debugger/" title="Redis Lua scripts debugger使用" target="_blank" rel="external">http://latchshun.github.io/2019/09/11/redis_lua_debugger/</a>
+      <a href="http://latchshun.github.io/2020/06/28/大表加索引方案/" title="大表加索引方案" target="_blank" rel="external">http://latchshun.github.io/2020/06/28/大表加索引方案/</a>
     </li>
     
     <li class="post-copyright-license">
@@ -395,13 +375,9 @@
   
   <ul class="pager pull-left">
     
-    <li class="prev">
-      <a href="/2019/09/25/动态修改注解值/" title="动态修改注解值"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
-    </li>
-    
     
     <li class="next">
-      <a href="/2019/08/07/微服务基础架构图谱/" title="微服务基础架构图谱"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+      <a href="/2020/06/22/关于HBase cannot get replica 0 location的报错/" title="关于Hive操作HBase报错can not get replica 0 location"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
     
